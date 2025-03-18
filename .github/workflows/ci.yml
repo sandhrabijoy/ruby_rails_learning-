@@ -19,11 +19,11 @@ jobs:
           ruby-version: .ruby-version
           bundler-cache: true
 
-      - name: Install dependencies
-        run: bundle install
+      - name: Install Brakeman
+        run: gem install brakeman  # Install brakeman globally
 
       - name: Scan for common Rails security vulnerabilities using static analysis
-        run: bundle exec brakeman --no-pager  # Use bundle exec
+        run: brakeman --no-pager  # Use global installation
 
   scan_js:
     runs-on: ubuntu-latest
@@ -38,22 +38,19 @@ jobs:
           ruby-version: .ruby-version
           bundler-cache: true
 
-      - name: Ensure importmap exists
+      - name: Ensure bin/importmap exists and is executable
         run: |
           if [ ! -f bin/importmap ]; then
-            echo "bin/importmap missing. Running 'bin/rails importmap:install'..."
-            bin/rails importmap:install
+            echo "bin/importmap not found! Generating..."
+            bundle exec rails importmap:install
           fi
-
-      - name: Make importmap executable
-        run: chmod +x bin/importmap
+          chmod +x bin/importmap
 
       - name: Scan for security vulnerabilities in JavaScript dependencies
         run: bin/importmap audit
 
   lint:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -64,8 +61,11 @@ jobs:
           ruby-version: .ruby-version
           bundler-cache: true
 
+      - name: Ensure bin/rubocop is executable
+        run: chmod +x bin/rubocop
+
       - name: Lint code for consistent style
-        run: bundle exec rubocop -f github
+        run: bin/rubocop -f github
 
   test:
     runs-on: ubuntu-latest
@@ -82,6 +82,14 @@ jobs:
         with:
           ruby-version: .ruby-version
           bundler-cache: true
+
+      - name: Ensure bin/rails is executable
+        run: |
+          if [ ! -f bin/rails ]; then
+            echo "bin/rails not found! Generating..."
+            bundle exec rails app:update:bin
+          fi
+          chmod +x bin/rails
 
       - name: Run tests
         env:
