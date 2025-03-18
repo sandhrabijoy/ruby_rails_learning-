@@ -19,11 +19,11 @@ jobs:
           ruby-version: .ruby-version
           bundler-cache: true
 
-      - name: Install Brakeman
-        run: gem install brakeman  # Install brakeman globally
+      - name: Install dependencies
+        run: bundle install
 
       - name: Scan for common Rails security vulnerabilities using static analysis
-        run: brakeman --no-pager  # Use global installation
+        run: bundle exec brakeman --no-pager  # Use bundle exec
 
   scan_js:
     runs-on: ubuntu-latest
@@ -38,11 +38,22 @@ jobs:
           ruby-version: .ruby-version
           bundler-cache: true
 
+      - name: Ensure importmap exists
+        run: |
+          if [ ! -f bin/importmap ]; then
+            echo "bin/importmap missing. Running 'bin/rails importmap:install'..."
+            bin/rails importmap:install
+          fi
+
+      - name: Make importmap executable
+        run: chmod +x bin/importmap
+
       - name: Scan for security vulnerabilities in JavaScript dependencies
         run: bin/importmap audit
 
   lint:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -54,7 +65,7 @@ jobs:
           bundler-cache: true
 
       - name: Lint code for consistent style
-        run: bin/rubocop -f github
+        run: bundle exec rubocop -f github
 
   test:
     runs-on: ubuntu-latest
