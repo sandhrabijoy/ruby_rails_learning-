@@ -18,6 +18,8 @@ jobs:
         with:
           ruby-version: .ruby-version
           bundler-cache: true
+      - name: Fix brakeman permissions  # ADD THIS STEP
+        run: chmod +x bin/brakeman
 
       - name: Scan for common Rails security vulnerabilities using static analysis
         run: bin/brakeman --no-pager
