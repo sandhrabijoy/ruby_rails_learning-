@@ -38,6 +38,14 @@ jobs:
           ruby-version: .ruby-version
           bundler-cache: true
 
+      - name: Ensure bin/importmap exists and is executable
+        run: |
+          if [ ! -f bin/importmap ]; then
+            echo "bin/importmap not found! Generating..."
+            bundle exec rails importmap:install
+          fi
+          chmod +x bin/importmap
+
       - name: Scan for security vulnerabilities in JavaScript dependencies
         run: bin/importmap audit
 
@@ -53,8 +61,11 @@ jobs:
           ruby-version: .ruby-version
           bundler-cache: true
 
-      - name: Lint code for consistent style
-        run: bin/rubocop -f github
+      - name: Ensure RuboCop is installed
+        run: bundle install --with development
+
+      - name: Run RuboCop Linter
+        run: bundle exec rubocop -f github
 
   test:
     runs-on: ubuntu-latest
@@ -72,10 +83,28 @@ jobs:
           ruby-version: .ruby-version
           bundler-cache: true
 
+      - name: Install dependencies
+        run: bundle install
+
+      - name: Ensure bin/rails is executable
+        run: |
+          if [ ! -f bin/rails ]; then
+            echo "bin/rails not found! Generating..."
+            bundle exec rails app:update:bin
+          fi
+          chmod +x bin/rails
+
+      - name: Prepare database
+        env:
+          RAILS_ENV: test
+        run: bundle exec rails db:test:prepare
+
       - name: Run tests
         env:
           RAILS_ENV: test
-        run: bin/rails db:test:prepare test test:system
+        run: |
+          bundle exec rails test
+          bundle exec rails test:system
 
       - name: Keep screenshots from failed system tests
         uses: actions/upload-artifact@v4
