@@ -1,4 +1,10 @@
-<%# <h1>Products#index</h1> %>
+<h1>Products</h1>
 <%#inyaml format to display wer use the debug method
  <p>Find me in app/views/products/index.html.erb</p> %>
-<%=debug @products%>
+<div id ="products">
+    <% @products.each do |product|%>
+    <div>
+        <%=product.name%>
+    </div>
+    <%end%>
+</div>
