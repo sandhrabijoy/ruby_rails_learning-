@@ -1,7 +1,8 @@
 <h1>Products</h1>
 <%#inyaml format to display wer use the debug method
  <p>Find me in app/views/products/index.html.erb</p> %>
-<div id ="products">
+ <%= link_to "New product", new_product_path %>
+ <div id ="products">
     <% @products.each do |product|%>
     <div>
         <%= link_to product.name , product %> 
